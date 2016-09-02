@@ -1,7 +1,7 @@
 # XRulez
 "XRulez" is a Windows executable that can add malicious rules to Outlook from the command line of a compromised host.
 
-To to learn more about the tool and the research behind this project, visit [https://labs.mwrinfosecurity.com/blog/malicious-outlook-rules](https://labs.mwrinfosecurity.com/blog/malicious-outlook-rules).
+To to learn more about the tool and the research behind this project, visit [https://labs.mwrinfosecurity.com/blog/malicious-outlook-rules](https://labs.mwrinfosecurity.com/blog/malicous-outlook-rules).
 
 ## Description
 Outlook rules can be used to achieve persistence on Windows hosts by creating a rule that executes a malicious payload. The rule can be setup to execute when the target receives an email with a specific keyword in the subject. An attacker can then drop shells on a target as and when they require by simply sending an email.
@@ -12,7 +12,7 @@ XRulez is open source software, maintained by [MWR InfoSecurity](https://www.mwr
 
 ## Getting Started
 ### Prerequisites
-- The target machine has already been comprimised.
+- The target machine has already been compromised.
 - The target has an authenticated session with the exchange server.
 - The target can access a file-share that we can write to.
 - We can send an email to the targets exchange account.
