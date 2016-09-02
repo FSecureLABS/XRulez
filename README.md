@@ -12,7 +12,7 @@ XRulez is open source software, maintained by [MWR InfoSecurity](https://www.mwr
 
 ## Getting Started
 ### Prerequisites
-- The target machine has already been comprimised.
+- The target machine has already been compromised.
 - The target has an authenticated session with the exchange server.
 - The target can access a file-share that we can write to.
 - We can send an email to the targets exchange account.
