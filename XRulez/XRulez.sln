@@ -1,0 +1,52 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.25420.1
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "XRulez", "XRulez.vcxproj", "{14083A04-DD4B-4E7D-A16E-86947D3D6D74}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		DebugDll|x64 = DebugDll|x64
+		DebugDll|x86 = DebugDll|x86
+		DebugExe|x64 = DebugExe|x64
+		DebugExe|x86 = DebugExe|x86
+		HybridDll|x64 = HybridDll|x64
+		HybridDll|x86 = HybridDll|x86
+		HybridExe|x64 = HybridExe|x64
+		HybridExe|x86 = HybridExe|x86
+		ReleaseDll|x64 = ReleaseDll|x64
+		ReleaseDll|x86 = ReleaseDll|x86
+		ReleaseExe|x64 = ReleaseExe|x64
+		ReleaseExe|x86 = ReleaseExe|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{14083A04-DD4B-4E7D-A16E-86947D3D6D74}.DebugDll|x64.ActiveCfg = DebugDll|x64
+		{14083A04-DD4B-4E7D-A16E-86947D3D6D74}.DebugDll|x64.Build.0 = DebugDll|x64
+		{14083A04-DD4B-4E7D-A16E-86947D3D6D74}.DebugDll|x86.ActiveCfg = DebugDll|Win32
+		{14083A04-DD4B-4E7D-A16E-86947D3D6D74}.DebugDll|x86.Build.0 = DebugDll|Win32
+		{14083A04-DD4B-4E7D-A16E-86947D3D6D74}.DebugExe|x64.ActiveCfg = DebugExe|x64
+		{14083A04-DD4B-4E7D-A16E-86947D3D6D74}.DebugExe|x64.Build.0 = DebugExe|x64
+		{14083A04-DD4B-4E7D-A16E-86947D3D6D74}.DebugExe|x86.ActiveCfg = DebugExe|Win32
+		{14083A04-DD4B-4E7D-A16E-86947D3D6D74}.DebugExe|x86.Build.0 = DebugExe|Win32
+		{14083A04-DD4B-4E7D-A16E-86947D3D6D74}.HybridDll|x64.ActiveCfg = HybridDll|x64
+		{14083A04-DD4B-4E7D-A16E-86947D3D6D74}.HybridDll|x64.Build.0 = HybridDll|x64
+		{14083A04-DD4B-4E7D-A16E-86947D3D6D74}.HybridDll|x86.ActiveCfg = HybridDll|Win32
+		{14083A04-DD4B-4E7D-A16E-86947D3D6D74}.HybridDll|x86.Build.0 = HybridDll|Win32
+		{14083A04-DD4B-4E7D-A16E-86947D3D6D74}.HybridExe|x64.ActiveCfg = HybridExe|x64
+		{14083A04-DD4B-4E7D-A16E-86947D3D6D74}.HybridExe|x64.Build.0 = HybridExe|x64
+		{14083A04-DD4B-4E7D-A16E-86947D3D6D74}.HybridExe|x86.ActiveCfg = HybridExe|Win32
+		{14083A04-DD4B-4E7D-A16E-86947D3D6D74}.HybridExe|x86.Build.0 = HybridExe|Win32
+		{14083A04-DD4B-4E7D-A16E-86947D3D6D74}.ReleaseDll|x64.ActiveCfg = ReleaseDll|x64
+		{14083A04-DD4B-4E7D-A16E-86947D3D6D74}.ReleaseDll|x64.Build.0 = ReleaseDll|x64
+		{14083A04-DD4B-4E7D-A16E-86947D3D6D74}.ReleaseDll|x86.ActiveCfg = ReleaseDll|Win32
+		{14083A04-DD4B-4E7D-A16E-86947D3D6D74}.ReleaseDll|x86.Build.0 = ReleaseDll|Win32
+		{14083A04-DD4B-4E7D-A16E-86947D3D6D74}.ReleaseExe|x64.ActiveCfg = ReleaseExe|x64
+		{14083A04-DD4B-4E7D-A16E-86947D3D6D74}.ReleaseExe|x64.Build.0 = ReleaseExe|x64
+		{14083A04-DD4B-4E7D-A16E-86947D3D6D74}.ReleaseExe|x86.ActiveCfg = ReleaseExe|Win32
+		{14083A04-DD4B-4E7D-A16E-86947D3D6D74}.ReleaseExe|x86.Build.0 = ReleaseExe|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

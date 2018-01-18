@@ -1,0 +1,264 @@
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/// @page XRulez XRulez
+/// "XRulez" is a Windows tool that allows adding malicious rules to Microsoft Outlook from a compromised host. This can be used to achieve persistence on Windows hosts by creating a rule
+/// that executes a malicious payload. The rule can be setup to execute when the target receives an email with a specific keyword in the subject. An attacker can then drop shells on a target as and
+/// when they require by simply sending an email. In the past, this technique could only be done via the Outlook GUI. However, XRulez achieves this from the command line and as a reflective DLL injection.
+/// To to learn more about the research behind this project, visit <a href="https://labs.mwrinfosecurity.com/blog/malicous-outlook-rules/"><b>Malicious Outlook Rules post on MWRLabs</b></a>. <br>
+/// <br>
+/// ## Getting started with XRulez
+/// XRulez now comes in two forms: executable and a reflective DLL. Also, most of the source code was reimplemented - see @ref XRulezChangelog for details.<br>
+/// <br>
+/// Builds and configurations:
+///		+ @subpage TypesOfXRulezBuilds
+///		+ @subpage XRulezConfigurations
+///		+ @subpage BuildingXRulezFromVS
+///		+ @subpage BuildingXRulezFromCL
+///		.
+/// Usage:
+///		+ @subpage XRulezBinariesUsage
+///		+ @subpage XRulezLimitations
+///		.
+/// Other:
+///		+ @subpage XRulezChangelog
+///		+ @subpage XRulezLicense
+///		.
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/// @page TypesOfXRulezBuilds Types of XRulez builds
+/// In order for XRulez to execute successfully, a proper binary build has to be used. To choose proper build, first you have to understand build types, labeling system and its meaning.<br><br>
+/// In general, binary builds can be described using two orthogonal traits - _platform type_ and _configuration type_. XRulez addresses Microsoft Windows platforms hosted on one of the two supported
+/// hardware architectures - x86, and it's 64-bit equivalent x86_64. It's essential to not mix them up, i.e. not to use a 64-bit binary on 86-bit operating system and vice versa.
+/// @warning If you run an XRulez binary, that was built for different architecture than it is launched on, a message box with detailed description of the architecture mismatch problem pops up on the
+/// screen. For a conscious user, it would be more than enough to understand that something strange is happening with his machine.
+///
+/// <br>The second trait is _configuration type_. For now there are only two _configuration types_ - debug, and release with debug information. First of the two is created to allow easy application
+/// developing and bug hunting. These builds should be used only in development environments. Release builds are more like final products - optimized and devoid of development instruments.
+/// Releases with debug info do contain some feedback data for developers that will be provided in case of unexpected problems, but only in encrypted form. Also, most of the data was extracted and is
+/// being kept in separate files on the build server. Release builds are the only builds that are included in client's repository.<br>
+/// <br>
+/// #### Builds labeling system
+/// Every binary file has a name format of:
+/// @verbatim BinaryName_xxxyy.extension @endverbatim
+/// where:
+///		+ xxx is the configuration type - 'd' for debug and 'rwdi' for release.
+///		+ yy is the target architecture - '86' for x86 and '64' for x86_64.
+///		.
+/// Example: XRulezDll_rwdi64.dll - release build of XRulez reflective DLL for x86_64 architecture.<br>
+/// <br>
+/// #### UNICODE support
+/// Current incarnation of XRulez has a stable UNICODE support. However, compatibility with mbcs is still maintained. You can freely change and recompile binaries with any string encoding, but UNICODE
+/// builds are preferred and default. Both developer and client repositories contain only UNICODE binary builds.
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/// @page XRulezConfigurations Configurating XRulez
+/// Both XRulez projects can be configured at compilation time using definitions in the source code. This is much more essential for XRulezDLL, as the EXE version is a command line tool - able to get
+/// parameters directly from user at the time of running. Still, configuration definitions serve some purposes on EXE builds - they are used as default parameters when no explicit values are
+/// provided.<br>
+/// <br>
+/// There are five parameters that are common to both EXE and DLL variants:
+///		+ <b>profile name</b> - name of Outlook profile used to log in. It has to be shorter than 66 characters. Leave it blank to use default profile name. This is the only parameter with varying encoding (which depends on project setting, see @ref TypesOfXRulezBuilds).
+///		+ <b>rule name</b> - this name will be seen on Outlook's rule list after injection. Has to be shorter than 256 characters. This parameter is always UNICODE, regardless of project settings.
+///		+ <b>trigger text</b> - text in email subject that triggers payload launching. Has to be shorter than 256 characters. Always UNICODE, regardless of project settings.
+///		+ <b>path to payload</b> - path to payload. Has to be shorter than 256 characters. Always UNICODE, regardless of project settings.
+///		+ <b>Windows service flag</b> - should be true if run as (or injected to) a Windows service process.
+///		.
+/// There is also one additional parameter that is used only by XRulezDLL:
+///		+ <b>multi-threaded flag</b> - should be set to true if DLL is injected to a multi-threaded process.
+///		.
+/// @note The payload application can be anything that is opened normally by \c ShellExec. This includes \c *\c .exe, \c *\c .bat, \c *\c .vbs. It doesn't include \c *\c .ps1 files, as by default they're opened in the default text
+/// editor.<br><br>Also note that profiles installed on a machine can be found using XRulezExe with '-l' switch.
+/// <br>
+/// All parameters are located in XRulez::Application::Application() constructor (source code file \c "%DeveloperRepo%\Src\Cleanboxes\XRulez\Codebox\Application.cpp", lines 11 - 18).
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/// @page BuildingXRulezFromVS Building XRulez from Microsoft Visual Studio
+/// XRulez can be (re)built on two ways: using Microsoft Visual Studio, or using command-line tool called MSBuild. In order to (re)build XRulezExe or XRulezDll project from Microsoft Visual Studio, following steps have to be performed:
+///		-# <b>Make sure you have a proper Microsoft Visual Studio version installed.</b> %XRulez is deployed as a Microsoft Visual Studio 2015 solution. Because of Visual Studio limitations, only the
+///		same or higher version must be used in order to open project and solution files.
+///		-# <b>Open XRulez solution.</b> Locate \c "%DeveloperRepo%\Src\Cleanboxes\XRulez\XRulez.sln" file and open it using Visual Studio 2015.
+///		-# <b>Choose which project to build.</b> Hit \c Ctrl \c + \c Alt \c + \c L to open Solution Explorer. Then select XRulezDll or XRulezExe project on the list, right click on it and choose "Set as StartUp Project".
+///		-# <b>Configure XRulez.</b> Open \c "Codebox\Application.cpp" file in Visual Studio editor, go to line 11, and fill all configuration parameters in Application class constructor (for details see @ref XRulezConfigurations):
+/// @code
+XRulez::Application::Application()
+{
+	// Settings used by both XRulezExe and XRulezDll.
+	m_ProfileName = TEXT("");													//< Outlook profile name used to log in. Leave it blank to use default profile name.
+	m_RuleName = L"Spam filter";												//< This name will be seen on Outlook's rule list.
+	m_TriggerText = L"Spam";													//< Text in email subject that triggers payload launching.
+	m_RulePayloadPath = L"C:\\2fac5c2a114c7896c33fb2b0a9f6443d\\filter.exe";	//< Path to payload.
+	m_IsRunningInWindowsService = false;										//< Should be true if run as (or injected to) a Windows Service. @see MAPIInitialize on MSDN.
+
+	// Used only by XRulezDll.
+	m_IsRunningInMultithreadedProcess = false;									//< Should be set to true if injected to multi-threaded process. @see MAPIInitialize on MSDN.
+
+	// Assertions.
+	CHECK(profileName.size() <= 65);
+	CHECK(m_RuleName.size() <= 255);
+	CHECK(m_TriggerText.size() <= 255);
+	CHECK(m_RulePayloadPath.size() <= 255);
+}
+///		@endcode
+///		-# <b>Build the project</b> using "Build" main window menu. Whenever you are encountering compilation intermediate errors (e.g. with temporary files), you can also pick "Build->Clean Solution" before building selected project, .
+///		.
+/// <br>See also @ref BuildingXRulezFromCL.
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/// @page BuildingXRulezFromCL Building XRulez from the Command Line
+/// XRulezDll and XRulezExe can be (re)built from the command-line. To do so, a tool called MSBuild is needed, but <b>no Microsoft Visual Studio</b> is required. In the past MSBuild was shipped with every
+/// .NET runtime releases. That means you might have MSBuild already installed on your Microsoft Windows system. However, XRulez is compatibile with version 14.0 or higher of MSBuild - if you have an
+///  older version, XRulez might not compile with it.<br><br>
+/// To check if MSBuild 14.0 is available on your system, run the following command: @verbatim reg.exe query "HKLM\SOFTWARE\Microsoft\MSBuild\ToolsVersions\14.0" /v MSBuildToolsPath @endverbatim
+/// This command should return path to MSBuild 14.0 if you have it on your system. If you don't have it, visit <a href="http://www.microsoft.com/en-us/download/details.aspx?id=48159"><b>Microsoft download center
+/// </b></a> to get it for free.
+/// <br>
+/// <br>
+/// ### %XRulez configuration/build command-line
+/// All six XRulez parameters can be configured with this method. There are four strings params - \c PROFILE_NAME, \c RULE_NAME, \c RULE_TRIGGER and \c PAYLOAD_PATH - and two boolean params (flags) -
+/// \c IS_RUNNING_IN_WINDOWS_SERVICE and \c IS_RUNNING_IN_MULTITHREADED_PROCESS. The meaning of those parameters is described on the @ref XRulezConfigurations page.
+/// <br><br>
+/// Command-line format is as follows: @verbatim MSBUILD_PATH /p:PreBuildParams="PROFILE_NAME=xxx;RULE_NAME=xxx;RULE_TRIGGER=xxx;PAYLOAD_PATH=xxx;IS_RUNNING_IN_WINDOWS_SERVICE=yyy;IS_RUNNING_IN_MULTITHREADED_PROCESS=yyy" XRULEZ_SOLUTION_PATH@endverbatim
+/// where all xxx's are strings without double quotes enclosing, all yyy can be true or false, \c MSBUILD_PATH is a path to MSBuild tool (same as retrieved with command on top of this page) and
+/// \c XRULEZ_SOLUTION_PATH is XRulez.sln file location.
+/// <br><br>Example usage:
+/// @verbatim "C:\Program Files (x86)\MSBuild\14.0\bin\amd64\msbuild.exe" /p:PreBuildParams="RULE_NAME=Spam filter;RULE_TRIGGER=Spam;PAYLOAD_PATH=C:\Stuxnet.exe;IS_RUNNING_IN_WINDOWS_SERVICE=true;IS_RUNNING_IN_MULTITHREADED_PROCESS=false" XRulez.sln@endverbatim
+/// @warning Every parameter that you put on the "PreBuildParams list" has to have explicit value assigned. In other words, you can't use \c PROFILE_NAME\c =\c ;. If you want to leave some param with
+/// it's default (source code defined) value, just don't put it on the list.
+///
+/// <br>
+/// ### Limitations of this method.
+///	Command line method doesn't allow to use semicolon and double quotes characters in strings. Using them will result in immediate build failure with some obscure error messages.
+/// If you find these issues limiting you too much, use Visual Studio method instead (see @ref BuildingXRulezFromVS).
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/// @page XRulezBinariesUsage XRulez prerequisites and usage
+/// ### Prerequisites
+/// Prerequisites are the same for both XRulezExe and XRulezDll:
+///		- The target machine has already been compromised.
+///		- The target has an authenticated session with the Exchange server.
+///		- The target can access a file-share that we can write to.
+///		- We can send an email to the targets exchange account.
+///		.
+/// @warning Since MAPI is architecture dependent, different versions will be required for 32-bit / 64-bit systems. Ensure that you're using the correct version before you run XRulez. If you fail to
+/// do so, a popup box will be displayed to the user stating that "MAPI can't find an Outlook client". Also, always use rwdi builds binaries (unless you're sure what you're doing).
+///
+/// <br>
+/// ### Using XRulezDll
+/// In order to create the malicious rule, just reflectively inject XRulezDll binary to some process on compromised machine and wait.
+/// <br>
+/// <br>
+/// ### Using XRulezExe
+/// From a compromised system:
+/// 1. Upload right XRulezExe binary to the target.
+/// 2. Run XRulez.exe with \c '-a' and optional parameters (precompiled values are used for omitted arguments) to add a new rule. Parameters are described in @ref XRulezConfigurations.
+///	@verbatim XRulez.exe -a [--profile PROFILE] [--name NAME] [--trigger TRIGGER] [--payload PAYLOAD] @endverbatim
+/// or use interactive configuration with \c '-i' swich:
+///	@verbatim XRulez.exe -i @endverbatim
+/// 3. Send an email to the target with the previously set keyword in the subject field.
+/// 4. Wait for shell.
+///
+/// After the rule has been created, XRulez can be removed from the target system and is no longer needed.
+/// @note The payload application can be anything that is opened normally by \c ShellExec. This includes \c *\c .exe, \c *\c .bat, \c *\c .vbs. It doesn't include \c *\c .ps1 files, as by default they're opened in the default text editor.
+///
+/// #### Other XRulezExe commands.
+/// + Run XRulez with \c '-h' to display help / usage.
+/// + Run XRulez with \c '-l' to display a list of MAPI profiles installed on the system.
+/// + Run XRulez with \c '-d' to display parameters default (precompiled) values.
+/// + Run XRulez with \c '-o' to check if Outlook is running at the moment.
+/// .
+/// <br>See also @ref XRulezLimitations.
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/// @page XRulezLimitations XRulez limitations
+/// Limitations of both XRulez forms:
+///		+ Target platform has to be known a priori in order to choose right binary. x86 binaries cannot be used on x86_64 platform and vice versa.
+///		+ Microsoft Outlook has to be open on the target machine for the tool to work. If not, there will be no session to share and therefore no connection to Exchange.
+///		+ Microsoft Outlook uses \c ShellExec to open the payload application. This means that the payload can't be executed with arguments, requiring the payload to be an all enclosed application hosted on the disk or externally.
+///		+ Payload has to be accessible from the target machine to read and execute (and accessible to attacker to upload).
+///		.
+/// Additional limitation of XRulezDll:
+///		+ XRulezDll currently works only with injectors that uses exported function labeled \c ReflectiveLoader to load it. <a href="https://github.com/stephenfewer/ReflectiveDLLInjection"><b>(Example of a compatible injector)</b></a>
+///		+ XRulezDll won't work when used as a regular DLL. If you load or inject it normally, results are unexpected (but always fatal - at least a deadlock of the loading thread).
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/// @page XRulezChangelog Changelog
+/// Changes made to <a href="https://github.com/mwrlabs/XRulez"><b>initial version of XRulez</b></a>:
+/// + \c lpbInbox in \c OpenInbox function was used after being freed. Fixed.
+/// + \c SRestriction structure was passed in call to \c HrQueryAllRows() without being filled at all. Fixed.
+/// + Removed unused column retrieval from \c HrQueryAllRows in \c main().
+/// + Mixing \c stdio with \c iostream is a bad practice - removed \c stdio from the source code.
+/// + Added the "Big Outer Try Block" to stop all unhandled exceptions from being propagated further to OS/host app.
+/// + Added params validations and assertions.
+/// + Reorganized and deleted redundant includes.
+/// + Moved Exchange SDK files (\c EdkGuid.h and \c EdkMdb.h) to \c Src/Common folder.
+/// + Reimplemented \c \%APPDATA% folder extraction, as previous implementation was using \c GetEnvironmentVariable\c (\c "APPDATA"\c ,...\c ), which is not the most reliable way to do it.
+/// + Reimplemented code that compares all file names with \c "*.xml" mask. Now the mask is provided directly to WinAPI call.
+/// + Refactored \c OpenInbox function and merged it with the main code.
+/// + Implemented ReflectiveLoader for DLL version of XRulez.
+/// + Designed new repository structure, added Sandboxes (research), Cleanboxes (products) and Testboxes (testing).
+/// + Reengineered everything to more modular code and implemented PreModule.hpp which gathers common code for all Modules.
+/// + Created CppTools Module and implemented ScopeGuards.
+/// + Created MapiTools and moved most of XRulez code there (to be available for other similar projects in the future)
+/// + Created WinTools Module and moved \c GetAppDataFolder() there.
+/// + Created precompiled header pack functionality for Modules inclusion system
+/// + Put everything into MS Visual Studio workspace + created two VS projects (separately for EXE and DLL versions, but with common headers to namespace XRulez). Moved XRulez to a Cleanbox.
+/// + Created binary configuration labeling system, set intermediate compilation files to temporary folders instead of solution folder, set output path to \c Repo/Src/Bin.
+/// + Established general error handling policy by creating @ref XErrorImplementationPage family of templates and macros. + Created basic enums to describe business-logic return codes.
+/// + Refactored whole code to return only @ref XErrorImplementationPage codes.
+/// + Reimplemented \c ListContents function and moved it to MapiTools Module as \c EnumerateProfileFiles().
+/// + Implemented another Outlook profile enlister - \c MapiTools::EnumerateProfiles().
+/// + Reimplemented all manual paths manipulations. Now using reliable functions, such as \c PathAppend.
+/// + Implementation of \c IsOutlookRunning() uses \c Process32Next without calling \c Process32First first, which is incorrect. Added call to \c Process32First. Also moved \c IsOutlookRunning() to MapiTools Module.
+/// + Removed unused variables: \c dwPriorityClass and \c hProcess.
+/// + Changed default character set from multi-byte to Unicode.
+/// + Implemented another version of checking whether Outlook is running.
+/// + Added \#\c include \c "InitGuid.h" in MapiTools compilation unit to be able to include guids from \c EdkGuid.h more than once.
+/// + Current implementation of \c CreateRule() performs a lot of data preparation (e.g. copying all strings to message buffers) before checking if \c lpMessage \c != \c nullptr. That doesn't make much sense. Refactored to the opposite.
+/// + Refactored low level \c lppPropArray setup to higher level code: created whole family of \c PropertyValue structures.
+/// + Extended rule actions byte stream had three hardcoded strings, which might be extracted and used as a signature when overwritten with shorter strings.
+/// + \c lppPropArray[13].Value.bin.cb and length of \c data_13 are equal to hardcoded value of 117 which makes no sense. Changed to (\c condition_offset + \c trigger_length).
+/// + Created \c ByteStream class and added it to CppTools Module.
+/// + Decoded most of 560 bytes long data stream \c data_12 into high-level structured code.
+/// + Performed tests that shown that paths of length \c MAX_PATH cannot be used for payload paths (6 bytes shorter max), because of limits in rule injection packet.
+/// + Rule name, trigger name, and payload path were multi-byte strings that were being copied to message packet byte stream as UNICODE strings (as every other byte). Fixed to real UNICODE.
+/// + Rule name, trigger name, and payload path were strings of random, static, predefined maximum length (50, 50 and 100) - changed to variadic length in range 1-255 for all of them, and added validation.
+/// + Decoded another two byte streams for Extended Rule Condition and for Extended Rule Actions. Also created OOP wrappers to allow much easier manipulations of these structures.
+/// + Created \c IMAPISession interface wrapper, the \c MapiTools::MapiSession class, and implemented \c OpenDefaultMessageStoreSession and \c OpenDefaultReceiveFolder methods.
+/// + Added new XRulezExe input params: -o to check if outlook is running at the moment, -d to see default param values, -i to perform interactive param configuration.
+/// + Implemented one more method for check if Outlook is running.
+/// + IsOutlookRunning calls \c CoInitialize now, this is required to perform checking of Outlook active object.
+/// + Added conversion from \c HRESULT errors to text for EXE builds.
+/// + Heavily commented whole code + created documentation for doxygen.
+/// + All errors are now redirected to \c std::err, all non-errors messages to \c std::cout. For DLL builds all output is forbidden.
+/// + Now no messages are shown to the user if XRulezExe succeeds. It shows messages only on errors and to reply on queries.
+/// + Implemented PreBuildParams - a possibility to configure XRulez input params from command-line build.
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/// @page XRulezLicense License
+/// XRulez is released under a 3-clause BSD License.
+/// <br><br>
+/// ## XRulez License
+/// Copyright (c) 2016, MWR Infosecurity
+/// All rights reserved.
+/// <br><br>
+/// Redistribution and use in source and binary forms, with or without<br>
+/// modification, are permitted provided that the following conditions are met:<br>
+///     * Redistributions of source code must retain the above copyright<br>
+///       notice, this list of conditions and the following disclaimer.<br>
+///     * Redistributions in binary form must reproduce the above copyright<br>
+///       notice, this list of conditions and the following disclaimer in the<br>
+///       documentation and/or other materials provided with the distribution.<br>
+///     * Neither the name of the MWR Infosecurity nor the<br>
+///       names of its contributors may be used to endorse or promote products<br>
+///       derived from this software without specific prior written permission.<br>
+///     .
+/// <br>
+/// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND<br>
+/// ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED<br>
+/// WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE<br>
+/// DISCLAIMED. IN NO EVENT SHALL MWR INFOSECURITY BE LIABLE FOR ANY<br>
+/// DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES<br>
+/// (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;<br>
+/// LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND<br>
+/// ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT<br>
+/// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS<br>
+/// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*
+## Compiling
+In order to compile from source, you'll need to include / link the following headers and libraries.
+- EdkGuid.h and EdkMdb.h, available to download from /src
+- Outlook 2010 Header Files, available to download from [https://www.microsoft.com/en-gb/download/details.aspx?id=12905](https://www.microsoft.com/en-gb/download/details.aspx?id=12905)
+- MAPI Stub Library, available to download from [https://mapistublibrary.codeplex.com/](https://mapistublibrary.codeplex.com/)
+*/

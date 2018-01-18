@@ -1,0 +1,140 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="StdAfx.cpp" />
+    <ClCompile Include="XRMod\Application.cpp">
+      <Filter>XRMod</Filter>
+    </ClCompile>
+    <ClCompile Include="XRMod\XRMod.cpp">
+      <Filter>XRMod</Filter>
+    </ClCompile>
+    <ClCompile Include="..\CppCommons\Modules\CppTools\CppToolsModule.cpp">
+      <Filter>Modules\CppTools</Filter>
+    </ClCompile>
+    <ClCompile Include="..\CppCommons\Modules\CppTools\XError.cpp">
+      <Filter>Modules\CppTools</Filter>
+    </ClCompile>
+    <ClCompile Include="..\CppCommons\Modules\WinTools\Registry.cpp">
+      <Filter>Modules\WinTools</Filter>
+    </ClCompile>
+    <ClCompile Include="..\CppCommons\Modules\WinTools\Services.cpp">
+      <Filter>Modules\WinTools</Filter>
+    </ClCompile>
+    <ClCompile Include="..\CppCommons\Modules\WinTools\WinToolsModule.cpp">
+      <Filter>Modules\WinTools</Filter>
+    </ClCompile>
+    <ClCompile Include="..\CppCommons\Modules\Enviro\EnviroModule.cpp">
+      <Filter>Modules\Enviro</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="StdAfx.h" />
+    <ClInclude Include="XRMod\Application.h">
+      <Filter>XRMod</Filter>
+    </ClInclude>
+    <ClInclude Include="XRMod\XRMod.hxx">
+      <Filter>XRMod</Filter>
+    </ClInclude>
+    <ClInclude Include="XRMod\Configuration.h">
+      <Filter>XRMod</Filter>
+    </ClInclude>
+    <ClInclude Include="XRMod\Configurations\WinDebugConfiguration.h">
+      <Filter>XRMod\Configurations</Filter>
+    </ClInclude>
+    <ClInclude Include="XRMod\Configurations\WinHybridConfiguration.h">
+      <Filter>XRMod\Configurations</Filter>
+    </ClInclude>
+    <ClInclude Include="XRMod\Configurations\WinReleaseConfiguration.h">
+      <Filter>XRMod\Configurations</Filter>
+    </ClInclude>
+    <ClInclude Include="XRMod\Configurations\WinUnitTestConfiguration.h">
+      <Filter>XRMod\Configurations</Filter>
+    </ClInclude>
+    <ClInclude Include="..\CppCommons\Modules\PreModule.hpp">
+      <Filter>Modules</Filter>
+    </ClInclude>
+    <ClInclude Include="..\CppCommons\Modules\CppTools\ByteStream.h">
+      <Filter>Modules\CppTools</Filter>
+    </ClInclude>
+    <ClInclude Include="..\CppCommons\Modules\CppTools\CppToolsModule.h">
+      <Filter>Modules\CppTools</Filter>
+    </ClInclude>
+    <ClInclude Include="..\CppCommons\Modules\CppTools\CppToolsModule.hh">
+      <Filter>Modules\CppTools</Filter>
+    </ClInclude>
+    <ClInclude Include="..\CppCommons\Modules\CppTools\CppToolsModule.hxx">
+      <Filter>Modules\CppTools</Filter>
+    </ClInclude>
+    <ClInclude Include="..\CppCommons\Modules\CppTools\PointerObject.h">
+      <Filter>Modules\CppTools</Filter>
+    </ClInclude>
+    <ClInclude Include="..\CppCommons\Modules\CppTools\ScopeGuard.h">
+      <Filter>Modules\CppTools</Filter>
+    </ClInclude>
+    <ClInclude Include="..\CppCommons\Modules\CppTools\XError.h">
+      <Filter>Modules\CppTools</Filter>
+    </ClInclude>
+    <ClInclude Include="..\CppCommons\Modules\CppTools\XException.h">
+      <Filter>Modules\CppTools</Filter>
+    </ClInclude>
+    <ClInclude Include="..\CppCommons\Modules\Enviro\EnviroModule.h">
+      <Filter>Modules\Enviro</Filter>
+    </ClInclude>
+    <ClInclude Include="..\CppCommons\Modules\Enviro\EnviroModule.hh">
+      <Filter>Modules\Enviro</Filter>
+    </ClInclude>
+    <ClInclude Include="..\CppCommons\Modules\Enviro\EnviroModule.hxx">
+      <Filter>Modules\Enviro</Filter>
+    </ClInclude>
+    <ClInclude Include="..\CppCommons\Modules\WinTools\AbstractService.h">
+      <Filter>Modules\WinTools</Filter>
+    </ClInclude>
+    <ClInclude Include="..\CppCommons\Modules\WinTools\Registry.h">
+      <Filter>Modules\WinTools</Filter>
+    </ClInclude>
+    <ClInclude Include="..\CppCommons\Modules\WinTools\Services.h">
+      <Filter>Modules\WinTools</Filter>
+    </ClInclude>
+    <ClInclude Include="..\CppCommons\Modules\WinTools\WinApiHrException.h">
+      <Filter>Modules\WinTools</Filter>
+    </ClInclude>
+    <ClInclude Include="..\CppCommons\Modules\WinTools\WinToolsModule.h">
+      <Filter>Modules\WinTools</Filter>
+    </ClInclude>
+    <ClInclude Include="..\CppCommons\Modules\WinTools\WinToolsModule.hh">
+      <Filter>Modules\WinTools</Filter>
+    </ClInclude>
+    <ClInclude Include="..\CppCommons\Modules\WinTools\WinToolsModule.hxx">
+      <Filter>Modules\WinTools</Filter>
+    </ClInclude>
+    <ClInclude Include="..\CppCommons\Modules\Modules.hh">
+      <Filter>Modules</Filter>
+    </ClInclude>
+    <ClInclude Include="..\CppCommons\Modules\Modules.hxx">
+      <Filter>Modules</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="XRMod.dox" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Modules">
+      <UniqueIdentifier>{2052f49b-2c88-42a0-bdb8-cb814d46494c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Modules\CppTools">
+      <UniqueIdentifier>{b0d032bb-4b7d-49ea-b021-a222dcd91ff6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Modules\Enviro">
+      <UniqueIdentifier>{5415654c-3150-4fab-a6a2-ed21faacc742}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Modules\WinTools">
+      <UniqueIdentifier>{633ff950-f67b-45b8-8b23-ecb5e2d52e33}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="XRMod">
+      <UniqueIdentifier>{42de3793-1d74-4f92-bd1e-bb123eef0ca4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="XRMod\Configurations">
+      <UniqueIdentifier>{2d2f8cea-4d83-4798-9ca1-ca695d9214a1}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>
