@@ -31,11 +31,14 @@ bool XRulez::Application::Process()
 	try
 	{
 		// Show some text on the screen.
-		Comment(TEXT("Performing injection..."));
+		Comment(APPLICATION_NAME);
 
 		// Validate and resolve (compilation) command-line parameters. This will be also used by XRulezBuilder.
 		if (!ProcessInputParameters())
 			return false;
+
+		// Show some text on the screen.
+		Comment(TEXT("Performing injection..."));
 
 		// Create and inject malicious rule.
 		MapiTools::CallKernelOnInboxFolder<void>(m_IsRunningInMultithreadedProcess, m_IsRunningInWindowsService, !Enviro::IsDllBuild, m_ProfileName,
