@@ -1,5 +1,11 @@
-﻿################################################################################
-# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
-################################################################################
-
-*.suo
+﻿*.suo
+/XRulez/.vs
+/XRulez/Bin
+/XRulez/ipch
+/XRulez/Tmp
+/XRMod/.vs
+/XRMod/Bin
+/XRMod/ipch
+/XRMod/Tmp
+*.VC.db
+*.VC.opendb
