@@ -1,4 +1,5 @@
 ﻿*.suo
+*.aps
 /XRulez/.vs
 /XRulez/Bin
 /XRulez/ipch

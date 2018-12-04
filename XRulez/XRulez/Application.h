@@ -78,6 +78,9 @@ namespace XRulez
 		/// Performs interactive configuration. Should not be called from DLL builds.
 		void ExePerformInteractiveConfiguration();
 
+		/// Shows all existing rules.
+		void ExeDisplayAllRules();
+
 		/// Displays a list of available MAPI profiles. Should not be called from DLL builds.
 		void ExeListOutlookProfiles();
 

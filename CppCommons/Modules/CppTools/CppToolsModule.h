@@ -53,16 +53,23 @@ namespace CppTools
 	struct StringConversions
 	{
 		/// String conversion template. Usage: auto mbcs = CppTools::StringConversions::Convert<std::string>(std::to_wstring(42));
-		template<typename DestinationType, typename ImplicitSourceType> static DestinationType Convert(ImplicitSourceType string)
-			{ static_assert(true, "Converter works on string types only (string, wstring, char*, wchar_t*)."); return nullptr; }
+		template<typename DestinationType, typename ImplicitSourceType> static DestinationType Convert(ImplicitSourceType)
+		{
+			static_assert(false, "Converter works on string types only (string, wstring, char*, wchar_t*)."); return nullptr;
+		}
 
 		// Specializations for standard strings.
-		template<> static std::string Convert(const std::string& string) { return string; }
-		template<> static std::wstring Convert(const std::wstring& string) { return string; }
-		template<> static std::string Convert(const std::wstring& string) { return Unicode2Mbcs(string); }
-		template<> static std::wstring Convert(const std::string& string) { return Mbcs2Unicode(string); }
+		template<> static std::string Convert(std::string string) { return string; }
+		template<> static std::wstring Convert(std::wstring string) { return string; }
+		template<> static std::string Convert(std::wstring string) { return Unicode2Mbcs(string); }
+		template<> static std::wstring Convert(std::string string) { return Mbcs2Unicode(string); }
 
 		// Specializations for raw string pointers.
+		template<> static std::string Convert(char* string) { return string; }
+		template<> static std::wstring Convert(wchar_t* string) { return string; }
+		template<> static std::string Convert(wchar_t* string) { return Unicode2Mbcs(string); }
+		template<> static std::wstring Convert(char* string) { return Mbcs2Unicode(string); }
+
 		template<> static std::string Convert(char const* string) { return string; }
 		template<> static std::wstring Convert(wchar_t const* string) { return string; }
 		template<> static std::string Convert(wchar_t const* string) { return Unicode2Mbcs(string); }

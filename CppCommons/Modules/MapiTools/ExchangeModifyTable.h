@@ -20,6 +20,20 @@ namespace MapiTools
 		/// @return false if rule of provided ID doesn't exist. True if rule was successfully deleted. Other Mapi errors are thrown as MapiException.
 		CppTools::XError<bool> DeleteRule(LARGE_INTEGER const& ruleId);
 
+		/// Structure describing a single inbox rule.
+		struct RuleInfo
+		{
+			std::wstring m_Name;												//< Name of the rule.
+			std::wstring m_Provider;											//< Provider of the rule.
+			LARGE_INTEGER m_Id;													//< Rule's ID.
+			ULONG m_SequenceNo;													//< Sequential number.
+		};
+
+		/// Enlists all rules in this table.
+		/// @return list of rules.
+		/// @remarks throws MapiException on MAPI call failures.
+		std::vector<RuleInfo> EnumerateRules();
+
 	protected:
 		/// Protected ctor.
 		ExchangeModifyTable(LPEXCHANGEMODIFYTABLE exchangeModifyTable) : PointerObject(exchangeModifyTable) { ValidateParam(exchangeModifyTable); }

@@ -152,8 +152,11 @@ bool XRulez::Application::ExeProcessParameters()
 	case TEXT('d'):																//< Display parameters default (precompiled) values.
 		return ExeShowDefaultParamsValues(), false;
 
-	case TEXT('i'):																//< Perform interactive configuration and proceed to message injection.
-		return ExePerformInteractiveConfiguration(), true;
+	//case TEXT('i'):															//< Perform interactive configuration and proceed to message injection.
+		//return ExePerformInteractiveConfiguration(), true;
+
+	case TEXT('e'):																//< Shows all existing rules.
+		return ExeDisplayAllRules(), true;
 
 	case TEXT('h'):																//< Display help.
 		return ExeShowUsage(false), false;
@@ -286,17 +289,17 @@ void XRulez::Application::ExeShowUsage(bool error)
 		TEXT("\n\nXRulez.exe -a [--profile PROFILE] [--name NAME] [--trigger TRIGGER] [--payload PAYLOAD]")
 		TEXT("\n\tCreates and adds a new Exchange rule. Default, built-in values (use -d to see them) are used for all omitted params. If profile name is blank then default Outlook profile will be used. Other params must not be blank.")
 
-		//TEXT("\n\nXRulez.exe -p")
-		//TEXT("\n\tChecks if EnableUnsafeClientMailRules security patch KB3191883 for Outlook 2013 and 2016.")
+		TEXT("\n\nXRulez.exe -e")
+		TEXT("\n\tDisplays all existing rules.")
 
 		TEXT("\n\nXRulez.exe -r")
 		TEXT("\n\tDisables security patch KB3191883 (re-enables run-actions for Outlook 2010, 2013 and 2016).")
 
-		TEXT("\n\nXRulez.exe -i")
-			TEXT("\n\tPerforms an interactive configuration and proceeds to message injection.")
+		//TEXT("\n\nXRulez.exe -i")
+		//TEXT("\n\tPerforms an interactive configuration and proceeds to message injection.")
 
 		TEXT("\n\nXRulez.exe -o")
-			TEXT("\n\tCheck it Outlook is running at the moment.\n") << std::endl;
+		TEXT("\n\tCheck it Outlook is running at the moment.\n") << std::endl;
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -340,6 +343,49 @@ void XRulez::Application::ExePerformInteractiveConfiguration()
 	GetInputParam("rule name", m_RuleName);
 	GetInputParam("trigger text", m_TriggerText);
 	GetInputParam("payload path", m_RulePayloadPath);
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void XRulez::Application::ExeDisplayAllRules()
+{
+	Comment(TEXT("Retrieving list of existing rules..."));
+	try
+	{
+		// Initialize MapiTools Module.
+		auto xeInitializeMapi = MapiTools::InitializeMapi(m_IsRunningInMultithreadedProcess, m_IsRunningInWindowsService);
+		if (xeInitializeMapi.IsFailure())
+			return ReportError(TEXT("MapiTools::InitializeMapi"), xeInitializeMapi);
+		SCOPE_GUARD{ MapiTools::UninitializeMapi(); };
+
+		// Login to a shared session, then open default message store, then inbox folder, and then enlist all existing rules.
+		auto ruleList = MapiTools::MapiSession{ MAPI_EXTENDED | MAPI_ALLOW_OTHERS | MAPI_NEW_SESSION | MAPI_USE_DEFAULT | (m_IsRunningInWindowsService ? MAPI_NT_SERVICE : 0), m_ProfileName }
+			.OpenDefaultMessageStore().OpenDefaultReceiveFolder().OpenRulesTable().EnumerateRules();
+
+		// Sort the list.
+		std::sort(ruleList.begin(), ruleList.end(), [](decltype(ruleList)::value_type const& lhs, decltype(ruleList)::value_type const& rhs) { return lhs.m_SequenceNo < rhs.m_SequenceNo; });
+		
+		// Display rules on the screen.
+		Comment(TEXT("Found ") + std::to_tstring(static_cast<unsigned>(ruleList.size())) + TEXT(" rules:\n"));
+		for (auto const& rule : ruleList)
+		{
+			std::wstringstream stream;
+			stream << std::hex << rule.m_Id.LowPart << rule.m_Id.HighPart;
+			Comment(TEXT("Rule ID: ") + stream.str());
+			Comment(TEXT("Rule name: ") + rule.m_Name);
+			Comment(TEXT("Provider: ") + rule.m_Provider);
+			Comment(TEXT(""));
+		}
+
+		Comment(TEXT("Done."));
+	}
+	catch (CppTools::XException& e)
+	{
+		CommentError(TEXT("Error. ") + CppTools::StringConversions::Mbcs2Tstring(e.what()) + TEXT("\n") + e.ComposeFullMessage());
+	}
+	catch (std::exception& e)
+	{
+		CommentError(TEXT("Error. ") + CppTools::StringConversions::Mbcs2Tstring(e.what()));
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
