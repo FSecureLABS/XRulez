@@ -43,7 +43,7 @@ namespace XRulez
 
 		/// Processes executable's input. Should not be called from DLL builds.
 		/// @return false if parameters are not valid and program should exit.
-		bool ExeProcessParameters();
+		void ExeProcessParameters();
 
 		/// Displays usage/help. Should not be called from DLL builds.
 		/// @param error if set then output message is slightly changed and std::terr instead of std::tcout is used.
@@ -65,8 +65,7 @@ namespace XRulez
 		bool PerformInjection();
 
 		/// Disables security patch KB3191883 (re-enables run-actions for Outlook 2010, 2013 and 2016).
-		/// @return false if couldn't modify registry.
-		bool ExeDisableSecurityPatchKB3191883();
+		void ExeDisableSecurityPatchKB3191883();
 
 		/// Another executable command line processing helper function. Handles one single command-line command. Should not be called from DLL builds.
 		/// @param commandKey name-part the a command to process.
@@ -80,6 +79,9 @@ namespace XRulez
 
 		/// Shows all existing rules.
 		void ExeDisplayAllRules();
+
+		/// Removes a rule from the server.
+		void ExeRemoveRule();
 
 		/// Displays a list of available MAPI profiles. Should not be called from DLL builds.
 		void ExeListOutlookProfiles();
